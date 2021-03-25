@@ -1,78 +1,64 @@
 const express = require("express");
-const mongodb = require("mongodb");
+// const mongodb = require("mongodb");
 const cors = require("cors");
 const dotenv = require("dotenv");
-
+const mongoose = require("mongoose");
+const questions = require("./questionsModel");
+const assessment = require("./assessmentModel");
 const app = express();
 app.use(express.json());
-app.use(
-  cors({
-    origin: true,
-  })
-);
+app.use(cors());
 dotenv.config();
-const mongoClient = mongodb.MongoClient;
-const objectId = mongodb.ObjectID;
-const DB_URL = process.env.DBURL || "mongodb://127.0.0.1:27017";
-const client = new mongoClient(DB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+
+// connect to mongodb
+const URI = process.env.DBURL || "mongodb://127.0.0.1:27017";
+mongoose.connect(
+  URI,
+  {
+    useCreateIndex: true,
+    useFindAndModify: false,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  },
+  (err) => {
+    if (err) throw err;
+    console.log("Connected to MongoDB");
+  }
+);
 
 app.get("/", (req, res) => {
   res.status(200).send({
     message: "Welcome to wysa",
   });
 });
+
 app.get("/questions", async (req, res) => {
   try {
-    let db = client.connect();
-    const result = await client
-      .db("wysa")
-      .collection("questions")
-      .find()
-      .toArray();
-    res.status(200).send({
-      result,
-    });
-    await client.close();
+    const result = await questions.find();
+    res.status(200).json(result);
   } catch (error) {
-    console.log(error);
-    res.sendStatus(500);
+    res.status(500).json({ message: error.message });
   }
 });
 app.get("/assessment", async (req, res) => {
   try {
-    let db = client.connect();
-    const result = await client
-      .db("wysa")
-      .collection("assessment")
-      .find()
-      .toArray();
-    await client.close();
-    res.status(200).send({
-      result,
-    });
+    const result = await assessment.find();
+    res.status(200).json(result);
   } catch (error) {
-    console.log(error);
-    res.sendStatus(500);
+    res.status(500).json({ message: error.message });
   }
 });
 
 app.post("/assessment", async (req, res) => {
   try {
-    let db = client.connect();
-    const data = {
-      answers: req.body.answers,
-    };
-    console.log(data);
-    await client.db("wysa").collection("assessment").insertOne(data);
-    await client.close();
+    const data = req.body.answers;
+    const newAssessment = new assessment(answers);
+    await newAssessment.save();
     res.status(200).send({
       message: "Assessment is submitted successfully",
+      newAssessment,
     });
   } catch (err) {
-    console.log(err);
     res.status(500).send(err.message);
   }
 });
