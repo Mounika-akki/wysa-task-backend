@@ -7,7 +7,11 @@ const questions = require("./questionsModel");
 const assessment = require("./assessmentModel");
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+  })
+);
 dotenv.config();
 
 // connect to mongodb
@@ -19,12 +23,17 @@ mongoose.connect(
     useFindAndModify: false,
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  },
-  (err) => {
-    if (err) throw err;
-    console.log("Connected to MongoDB");
   }
+  // (err) => {
+  //   if (err) throw err;
+  //   console.log("Connected to MongoDB");
+  // }
 );
+
+const connection = mongoose.connection;
+connection.once("open", () => {
+  console.log("MongoDB database connection established successfully");
+});
 
 app.get("/", (req, res) => {
   res.status(200).send({
@@ -51,15 +60,27 @@ app.get("/assessment", async (req, res) => {
 
 app.post("/assessment", async (req, res) => {
   try {
-    const data = req.body.answers;
-    const newAssessment = new assessment(answers);
+    const { name, question1, question2, question3, question4 } = req.body;
+    const newAssessment = new assessment({
+      name,
+      question1,
+      question2,
+      question3,
+      question4,
+    });
+    console.log(newAssessment);
+
     await newAssessment.save();
-    res.status(200).send({
+    res.status(200).json({
       message: "Assessment is submitted successfully",
       newAssessment,
     });
   } catch (err) {
-    res.status(500).send(err.message);
+    console.log(err);
+    res.status(500).json({
+      message: "Assessment submission failed",
+      error: err,
+    });
   }
 });
 
