@@ -1,10 +1,6 @@
 const mongoose = require("mongoose");
 const assessmentSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-    },
     question1: {
       type: String,
     },
@@ -16,6 +12,10 @@ const assessmentSchema = new mongoose.Schema(
     },
     question4: {
       type: String,
+    },
+    name: {
+      type: String,
+      required: true,
     },
   },
   {
