@@ -16,19 +16,12 @@ dotenv.config();
 
 // connect to mongodb
 const URI = process.env.DBURL || "mongodb://127.0.0.1:27017";
-mongoose.connect(
-  URI,
-  {
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
-  // (err) => {
-  //   if (err) throw err;
-  //   console.log("Connected to MongoDB");
-  // }
-);
+mongoose.connect(URI, {
+  useCreateIndex: true,
+  useFindAndModify: false,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 const connection = mongoose.connection;
 connection.once("open", () => {
